@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/myosdk__button_red"
+    android:weightSum="1"
+    android:baselineAligned="false">
 
     <TextView
         android:layout_width="wrap_content"
@@ -11,8 +14,9 @@
         android:id="@+id/textView"
         android:textSize="50dp"
         android:layout_gravity="top"
-        android:layout_marginLeft="50dp"
-        android:layout_marginTop="30dp" />
+        android:layout_marginLeft="70dp"
+        android:layout_marginTop="130dp"
+        />
 
     <TextView
         android:layout_width="wrap_content"
@@ -21,6 +25,15 @@
         android:text="0"
         android:id="@+id/repCount"
         android:textSize="50dp"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="130dp"
         android:layout_marginLeft="30dp" />
+
+    <Button
+        android:layout_width="130"
+        android:layout_height="wrap_content"
+        android:text="My Workouts"
+        android:id="@+id/storedWorkouts"
+        android:layout_marginTop="0dp"
+        android:layout_marginRight="20dp"
+        android:textSize="20dp" />
 </LinearLayout>
