@@ -13,6 +13,9 @@
 #include <stdio.h>
 #include <deque>
 
+// Classes that inherit from myo::DeviceListener can be used to receive events from Myo devices. DeviceListener
+// provides several virtual functions for handling different kinds of events. If you do not override an event, the
+// default behavior is to do nothing.
 class DataCollector : public myo::DeviceListener {
 public:
 	bool onArm;
@@ -23,28 +26,35 @@ public:
 	myo::Quaternion<float> currentRotation;
 	myo::Pose currentPose;
 	myo::Vector3<float> currentPos, lastPos;
-	int holdTime = 0;
-	bool inARep = false;	//currently doing an exercise
-	bool inAnExercise = false;  //currently doing an set of exercises
+	int holdTime;
+	bool isMoving;	//currently doing an exercise
+	bool inASet;  //currently doing an set of exercises
+    bool wasAtRepStart;
+    bool wasAtRepFinish;
+    int reps;
 	
 	DataCollector()
-	: onArm(false), roll_w(0), pitch_w(0), yaw_w(0), currentPose(), inARep(false), inAnExercise(false)
+	: onArm(false), roll_w(0), pitch_w(0), yaw_w(0), currentPose(), holdTime(0), isMoving(false), inASet(false), wasAtRepStart(false), wasAtRepFinish(false), reps(0)
 	{ }
 	
 	void onPose(myo::Myo* myo, uint64_t timestamp, myo::Pose pose)
 	{
 		currentPose = pose;
 		
-		// Start a new exercise when you spread your hand
-		if (pose == myo::Pose::fingersSpread) {
-			if (inAnExercise == false){
+		// Start a new exercise when you put thumb to pinky
+        if (pose == myo::Pose::thumbToPinky) {
+            initializeNewExercise();
+        }
+        else if (pose == myo::Pose::fingersSpread) {
+			if (inASet == false){
 				myo->vibrate(myo::Myo::vibrationMedium);
-				inAnExercise = true;
+				inASet = true;
 			}
 			else {
 				myo->vibrate(myo::Myo::vibrationMedium);
 				myo->vibrate(myo::Myo::vibrationMedium);
-				inAnExercise = false;
+				inASet = false;
+                cout << "Did " << reps << "reps for this exercise!\n";
 			}
 		}
 		
@@ -55,7 +65,22 @@ public:
 	void onOrientationData(myo::Myo* myo, uint64_t timestamp, const myo::Quaternion<float>& quat)
 	{
 		currentRotation = quat;
-		
+
+        if (inASet) {
+            if (closeToV3(currentExercise.posStart, collector.currentPos, currentExercise.posTolerance)) {
+                cout << "At position start for rep\n";
+                wasAtRepStart = true;
+                if (wasAtRepEnd) { 
+                    reps++;
+                    wasAtRepEnd = false;
+                    cout << "Did a rep!\n";
+                }
+            }  
+            else if (closeToV3(currentExercise.posEnd, collector.currentPos, currentExercise.posTolerance)) {
+                cout << "At position end for rep\n";
+                wasAtRepEnd = true;
+            }
+        }
 	}
 	
 	void onAccelerometerData(myo::Myo* myo, uint64_t timestamp, const myo::Vector3<float>& accel) {
@@ -67,12 +92,13 @@ public:
 			//std::cout << "\nNot moving";
 			holdTime++;
 		} else {
-			//std::cout << "\n";
-			
-			inARep = true;
+			isMoving = true;
 			holdTime = 0;
 		}
-		
+
+		if (holdTime > 15){
+			isMoving = false;
+		}
 	}
 	
 	// There are other virtual functions in DeviceListener that we could override here, like onAccelerometerData().
@@ -87,28 +113,26 @@ public:
 		//std::cout << "\nacceleration: " << xaccel << "   " <<yaccel << "   " <<zaccel;
 		
 		//std::cout << "\nholdtime: " << holdTime;
-		if (holdTime > 15){
-			inARep = false;
-			//std::cout << "\nYou did a rep!";
-		}
 		std::cout << std::flush;
 	}
 };
 
 class exercise : public myo::Pose {
 public:
-	exercise(myo::Vector3<float> accel1_in, myo::Vector3<float> accel2_in, myo::Quaternion<float> rot1_in,
-			 myo::Quaternion<float> rot2_in, std::string name_in)
-	: accel1(accel1_in), accel2(accel2_in), rot1(rot1_in), rot2(rot2_in), name(name_in) {};
+	exercise(myo::Vector3<float> pos1, myo::Vector3<float> pos2, myo::Quaternion<float> rot1_in, myo::Quaternion<float> rot2_in, std::string name_in)
+        : posStart(pos1), posEnd(pos2), rot1(rot1_in), rot2(rot2_in), name(name_in) {
+
+        posTolerance = .1;
+    };
 	
 	
 	
 	//each exercise is defined as a hand position and a change in accelerometer value and rotation
 	std::string name;
 	myo::Pose pose;
-	myo::Vector3<float> accel1, accel2, accelChange;	//approximate change in accelerometer from start to finish
+	myo::Vector3<float> posStart, posEnd;
 	myo::Quaternion<float> rot1, rot2, rotChange;  //approximate change in rotation from start to finish
-	double accelTolerance;
+	double posTolerance;
 	double rotTolerance;
 };
 
