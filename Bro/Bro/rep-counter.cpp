@@ -10,11 +10,6 @@
 // The only file that needs to be included to use the Myo C++ SDK is myo.hpp.
 #include <myo/myo.hpp>
 
-// GLOBAL STATE
-bool inSet;
-int reps;
-
-
 // Classes that inherit from myo::DeviceListener can be used to receive events from Myo devices. DeviceListener
 // provides several virtual functions for handling different kinds of events. If you do not override an event, the
 // default behavior is to do nothing.
@@ -34,6 +29,9 @@ public:
         pitch_w = 0;
         yaw_w = 0;
         onArm = false;
+
+        inSet = false;
+        reps = 0;
     }
 
     // onOrientationData() is called whenever the Myo device provides its current orientation, which is represented
@@ -79,6 +77,9 @@ public:
     {
         onArm = true;
         whichArm = arm;
+
+        inSet = false;
+        reps = 0;
     }
 
     // onArmLost() is called whenever Myo has detected that it was moved from a stable position on a person's arm after
@@ -87,6 +88,7 @@ public:
     void onArmLost(myo::Myo* myo, uint64_t timestamp)
     {
         onArm = false;
+
         inSet = false;
         reps = 0;
     }
@@ -130,6 +132,10 @@ public:
     // These values are set by onOrientationData() and onPose() above.
     int roll_w, pitch_w, yaw_w;
     myo::Pose currentPose;
+    
+    // These are the values for the Exercise rep counter
+    bool inSet;
+    int reps;
 };
 
 int main(int argc, char** argv)
@@ -159,10 +165,6 @@ int main(int argc, char** argv)
 
     // Next we construct an instance of our DeviceListener, so that we can register it with the Hub.
     DataCollector collector;
-
-    // Initialize global variables
-    inSet = false;
-    reps = 0;
 
     // Hub::addListener() takes the address of any object whose class inherits from DeviceListener, and will cause
     // Hub::run() to send events to all registered device listeners.
