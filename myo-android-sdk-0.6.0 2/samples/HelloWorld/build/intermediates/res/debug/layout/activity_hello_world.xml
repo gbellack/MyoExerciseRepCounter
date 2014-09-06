@@ -1,0 +1,20 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.thalmic.android.sample.helloworld.HelloWorldActivity"
+    tools:ignore="MergeRootFrame">
+
+    <TextView
+        android:id="@+id/text"
+        android:text="@string/Start"
+        android:textSize="50dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        tools:ignore="SpUsage"
+        android:clickable="true" />
+
+</FrameLayout>
+<!-- From: file:/Users/jessi/Desktop/MyoExerciseRepCounter/myo-android-sdk-0.6.0%202/samples/HelloWorld/src/main/res/layout/activity_hello_world.xml -->
